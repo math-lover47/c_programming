@@ -30,7 +30,7 @@ A command-line utility for date validation and calculations, supporting:
 1. Run using compiled file:
 
    ```bash
-   ./datecalc
+   ./start
    ```
 
 ## Usage
@@ -38,7 +38,7 @@ A command-line utility for date validation and calculations, supporting:
 ### Basic Syntax
 
 ```bash
-./datecalc [OPTIONS] [DATE]
+./start [OPTIONS] [DATE]
 ```
 
 ### Examples
@@ -46,7 +46,7 @@ A command-line utility for date validation and calculations, supporting:
 0. **Help**:
 
 ```bash
-   ./datecalc --help
+   ./start --help
 ```
 
 Output:
@@ -67,13 +67,13 @@ Date format: YYYY MM DD or YYYY-MM-DD
 1. **Validate a date**:
 
    ```bash
-   ./datecalc 2023-12-25
+   ./start 2023-12-25
    ```
 
    or
 
    ```bash
-   ./datecalc
+   ./start
    ```
 
    Output:
@@ -85,13 +85,13 @@ Date format: YYYY MM DD or YYYY-MM-DD
 2. **Calculate day of week**:
 
    ```bash
-   ./datecalc --dw 2023-12-25
+   ./start --dw 2023-12-25
    ```
 
    or
 
    ```bash
-   ./datecalc --dw
+   ./start --dw
    ```
 
    Output:
@@ -103,7 +103,7 @@ Date format: YYYY MM DD or YYYY-MM-DD
 3. **Calculate day of year**:
 
    ```bash
-   ./datecalc --dy --m december
+   ./start --dy --m december
    ```
 
    Output:
@@ -115,13 +115,13 @@ Date format: YYYY MM DD or YYYY-MM-DD
 4. **Date difference from today**:
 
    ```bash
-   ./datecalc --df 2024-01-01
+   ./start --df 2024-01-01
    ```
 
    or
 
    ```bash
-   ./datecalc --df
+   ./start --df
    ```
 
    Output (example):

@@ -131,7 +131,7 @@ void validate_and_process(Flags *flags)
   if (!Date_is_valid(&flags->date))
   {
     Date_print_error("Invalid date");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   if (flags->day_of_year)
@@ -171,7 +171,7 @@ void handle_prompt(Flags *flags, char *input, size_t size)
   if (fgets(input, size, stdin) == NULL)
   {
     Date_print_error("Failed to read input");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   trim_whitespace(input);
 }
@@ -193,7 +193,7 @@ void process_input(Flags *flags, const char *input)
     if (!parse_data(input, &flags->date))
     {
       Date_print_error("Invalid date format");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   }
 }
@@ -212,14 +212,14 @@ void parse_year_day_input(Flags *flags, const char *input)
   if (!token || !parse_int(token, &flags->date.year))
   {
     Date_print_error("Invalid year");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   token = strtok(NULL, " -");
   if (!token || !parse_int(token, &flags->date.day))
   {
     Date_print_error("Invalid day");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -233,7 +233,7 @@ void convert_month_string(Flags *flags)
   if (flags->date.month == 0)
   {
     Date_print_error("Invalid month name");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -627,7 +627,7 @@ bool handle_month_flag(int argc, char *argv[], int *i, Flags *flags)
       return true;
     }
     Date_print_error("Missing month argument");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   return false;
 }
@@ -668,7 +668,7 @@ void handle_date_argument(const char *arg, Flags *flags)
   if (!parse_data(arg, &flags->date))
   {
     Date_print_error("Invalid argument");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -678,7 +678,7 @@ void handle_date_argument(const char *arg, Flags *flags)
 void print_help()
 {
   printf("Date Calculator\n");
-  printf("Usage: datecalc [options] [date]\n");
+  printf("Usage: start [options] [date]\n");
   printf("Options:\n");
   printf("  -h, --help     Show this help message\n");
   printf("  -m, --m MONTH  Set month by name (e.g. december)\n");
