@@ -153,7 +153,3 @@ The program uses several optimizations:
 - Memory requirements increase with thread count
 - For extremely large ranges (approaching 10¹⁸), execution time may be considerable
 - Results are limited to the first 100 Armstrong numbers found
-
-## License
-
-This project is open source and available under the MIT License.

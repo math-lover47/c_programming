@@ -1,8 +1,3 @@
-/**
- * @file main.c
- * @brief A comprehensive date calculator with various date operations
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

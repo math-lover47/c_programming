@@ -1,12 +1,3 @@
-/**
- * @file decimal_to_binary.c
- * @brief Parallel decimal float to binary converter using OpenMP
- *
- * This program converts decimal floating point numbers to their binary
- * representation, continuing the conversion process until the residue
- * (fractional remainder) is less than 0.005.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -31,18 +22,18 @@ typedef struct
   bool file_mode;               ///< Read numbers from file instead of stdin
   char filename[MAX_INPUT_LEN]; ///< Input file name
   double numbers[MAX_NUMBERS];  ///< Array of numbers to process
-} Converter;
+} ConverterConfig;
 
 /* Function prototypes */
-void parse_args(int argc, char *argv[], Converter *conv);
+void parse_args(int argc, char *argv[], ConverterConfig *config);
 void print_help(void);
 bool parse_double(const char *str, double *value);
-void handle_input(Converter *conv);
-void process_batch(Converter *conv);
+void handle_input(ConverterConfig *config);
+void process_batch(ConverterConfig *config);
 void convert_decimal_to_binary(double number, char *binary, int *length);
 void print_error(const char *msg);
-void read_numbers_from_file(Converter *conv);
-void convert_decimal_to_binary_parallel(Converter *conv);
+void read_numbers_from_file(ConverterConfig *config);
+void convert_decimal_to_binary_parallel(ConverterConfig *config);
 
 /**
  * @brief Main program entry point
@@ -52,7 +43,7 @@ void convert_decimal_to_binary_parallel(Converter *conv);
  */
 int main(int argc, char *argv[])
 {
-  Converter conv = {
+  ConverterConfig config = {
       .count = 0,
       .help = false,
       .threads = 4,
@@ -60,33 +51,33 @@ int main(int argc, char *argv[])
       .filename = {0}};
   double start_time, end_time;
 
-  parse_args(argc, argv, &conv);
+  parse_args(argc, argv, &config);
 
-  if (conv.help)
+  if (config.help)
   {
     print_help();
     return 0;
   }
 
   // If no numbers provided via command-line or file, get from stdin
-  if (conv.count == 0 && !conv.file_mode)
+  if (config.count == 0 && !config.file_mode)
   {
-    handle_input(&conv);
+    handle_input(&config);
   }
-  else if (conv.file_mode)
+  else if (config.file_mode)
   {
-    read_numbers_from_file(&conv);
+    read_numbers_from_file(&config);
   }
 
   start_time = omp_get_wtime();
 
-  if (conv.threads > 1 && conv.count > 1)
+  if (config.threads > 1 && config.count > 1)
   {
-    convert_decimal_to_binary_parallel(&conv);
+    convert_decimal_to_binary_parallel(&config);
   }
   else
   {
-    process_batch(&conv);
+    process_batch(&config);
   }
 
   end_time = omp_get_wtime();
@@ -97,14 +88,14 @@ int main(int argc, char *argv[])
 
 /**
  * @brief Converts decimal floating point numbers to binary representation in parallel
- * @param conv Pointer to Converter configuration structure
+ * @param conv Pointer to ConverterConfig configuration structure
  *
  * Uses OpenMP to process multiple numbers concurrently for improved performance.
  */
-void convert_decimal_to_binary_parallel(Converter *conv)
+void convert_decimal_to_binary_parallel(ConverterConfig *config)
 {
-  int num_threads = (conv->count < conv->threads) ? conv->count : conv->threads;
-  printf("Processing %d numbers using %d threads\n", conv->count, num_threads);
+  int num_threads = (config->count < config->threads) ? config->count : config->threads;
+  printf("Processing %d numbers using %d threads\n", config->count, num_threads);
 
 #pragma omp parallel num_threads(num_threads)
   {
@@ -112,13 +103,13 @@ void convert_decimal_to_binary_parallel(Converter *conv)
     int length;
 
 #pragma omp for schedule(dynamic, 1)
-    for (int i = 0; i < conv->count; i++)
+    for (int i = 0; i < config->count; i++)
     {
-      convert_decimal_to_binary(conv->numbers[i], binary, &length);
+      convert_decimal_to_binary(config->numbers[i], binary, &length);
 
 #pragma omp critical
       {
-        printf("Decimal: %f\n", conv->numbers[i]);
+        printf("Decimal: %f\n", config->numbers[i]);
         printf("Binary: %s\n", binary);
         printf("Length: %d binary digits\n\n", length);
       }
@@ -128,17 +119,17 @@ void convert_decimal_to_binary_parallel(Converter *conv)
 
 /**
  * @brief Processes a batch of numbers in single-threaded mode
- * @param conv Pointer to Converter configuration structure
+ * @param conv Pointer to ConverterConfig configuration structure
  */
-void process_batch(Converter *conv)
+void process_batch(ConverterConfig *config)
 {
   char binary[MAX_BINARY_DIGITS + 1];
   int length;
 
-  for (int i = 0; i < conv->count; i++)
+  for (int i = 0; i < config->count; i++)
   {
-    convert_decimal_to_binary(conv->numbers[i], binary, &length);
-    printf("Decimal: %f\n", conv->numbers[i]);
+    convert_decimal_to_binary(config->numbers[i], binary, &length);
+    printf("Decimal: %f\n", config->numbers[i]);
     printf("Binary: %s\n", binary);
     printf("Length: %d binary digits\n\n", length);
   }
@@ -233,11 +224,11 @@ void convert_decimal_to_binary(double number, char *binary, int *length)
 
 /**
  * @brief Reads decimal numbers from an input file
- * @param conv Pointer to Converter configuration structure
+ * @param conv Pointer to ConverterConfig configuration structure
  */
-void read_numbers_from_file(Converter *conv)
+void read_numbers_from_file(ConverterConfig *config)
 {
-  FILE *file = fopen(conv->filename, "r");
+  FILE *file = fopen(config->filename, "r");
   if (file == NULL)
   {
     print_error("Could not open input file");
@@ -245,9 +236,9 @@ void read_numbers_from_file(Converter *conv)
   }
 
   char line[MAX_INPUT_LEN];
-  conv->count = 0;
+  config->count = 0;
 
-  while (fgets(line, sizeof(line), file) && conv->count < MAX_NUMBERS)
+  while (fgets(line, sizeof(line), file) && config->count < MAX_NUMBERS)
   {
     // Skip empty lines and comments
     if (line[0] == '\n' || line[0] == '#')
@@ -259,26 +250,26 @@ void read_numbers_from_file(Converter *conv)
     double value;
     if (parse_double(line, &value))
     {
-      conv->numbers[conv->count++] = value;
+      config->numbers[config->count++] = value;
     }
   }
 
   fclose(file);
-  printf("Read %d numbers from %s\n", conv->count, conv->filename);
+  printf("Read %d numbers from %s\n", config->count, config->filename);
 }
 
 /**
  * @brief Handles user input for decimal numbers
- * @param conv Pointer to Converter configuration structure
+ * @param conv Pointer to ConverterConfig configuration structure
  */
-void handle_input(Converter *conv)
+void handle_input(ConverterConfig *config)
 {
   char input[MAX_INPUT_LEN];
   double value;
 
   printf("Enter decimal numbers (one per line, empty line to finish):\n");
 
-  while (conv->count < MAX_NUMBERS)
+  while (config->count < MAX_NUMBERS)
   {
     printf("> ");
     if (fgets(input, sizeof(input), stdin) == NULL || input[0] == '\n')
@@ -286,7 +277,7 @@ void handle_input(Converter *conv)
 
     if (parse_double(input, &value))
     {
-      conv->numbers[conv->count++] = value;
+      config->numbers[config->count++] = value;
     }
     else
     {
@@ -323,21 +314,21 @@ void print_error(const char *msg)
  * @param argv Argument vector
  * @param conv Configuration structure to populate
  */
-void parse_args(int argc, char *argv[], Converter *conv)
+void parse_args(int argc, char *argv[], ConverterConfig *config)
 {
   for (int i = 1; i < argc; i++)
   {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
     {
-      conv->help = true;
+      config->help = true;
     }
     else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0)
     {
       if (++i < argc)
       {
-        conv->file_mode = true;
-        strncpy(conv->filename, argv[i], MAX_INPUT_LEN - 1);
-        conv->filename[MAX_INPUT_LEN - 1] = '\0';
+        config->file_mode = true;
+        strncpy(config->filename, argv[i], MAX_INPUT_LEN - 1);
+        config->filename[MAX_INPUT_LEN - 1] = '\0';
       }
       else
       {
@@ -351,7 +342,7 @@ void parse_args(int argc, char *argv[], Converter *conv)
       if (++i < argc && sscanf(argv[i], "%lld", &threads) == 1 &&
           threads >= 1 && threads <= MAX_THREADS)
       {
-        conv->threads = (int)threads;
+        config->threads = (int)threads;
       }
       else
       {
@@ -361,9 +352,9 @@ void parse_args(int argc, char *argv[], Converter *conv)
     }
     else if (strcmp(argv[i], "--number") == 0 || strcmp(argv[i], "-n") == 0)
     {
-      if (++i < argc && parse_double(argv[i], &conv->numbers[conv->count]))
+      if (++i < argc && parse_double(argv[i], &config->numbers[config->count]))
       {
-        conv->count++;
+        config->count++;
       }
       else
       {
@@ -379,7 +370,7 @@ void parse_args(int argc, char *argv[], Converter *conv)
  */
 void print_help()
 {
-  printf("\nDecimal to Binary Converter\n\n");
+  printf("\nDecimal to Binary ConverterConfig\n\n");
   printf("This program converts decimal floating point numbers to their binary representation\n");
   printf("until the residue (remaining fractional part) is less than 0.005.\n\n");
   printf("Usage: decimal_to_binary [options]\n\n");

@@ -1,12 +1,3 @@
-/**
- * @file armstrong_optimized.c
- * @brief Optimized parallel Armstrong numbers calculator using OpenMP
- *
- * An Armstrong number (also known as narcissistic number) is a number that is
- * equal to the sum of its own digits each raised to the power of the number of digits.
- * Example: 153 = 1³ + 5³ + 3³ = 1 + 125 + 27 = 153
- */
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -26,14 +17,14 @@ typedef struct
   long long limit; ///< Upper limit for number search
   bool help;       ///< Flag to show help message
   int threads;     ///< Number of threads to use
-} Armstrong;
+} ArmstrongConfig;
 
 /* Function prototypes */
-void parse_args(int argc, char *argv[], Armstrong *arm);
+void parse_args(int argc, char *argv[], ArmstrongConfig *config);
 void print_help(void);
 bool parse_long_long(const char *str, long long *value);
-void handle_input(Armstrong *arm);
-void process_input(Armstrong *arm, const char *input);
+void handle_input(ArmstrongConfig *config);
+void process_input(ArmstrongConfig *arm, const char *input);
 bool is_armstrong_number(long long num);
 int count_digits(long long num);
 long long ipow(long long base, int exp);
@@ -49,28 +40,28 @@ void print_armstrong_numbers(long long limit);
  */
 int main(int argc, char *argv[])
 {
-  Armstrong arm = {.limit = 0, .help = false, .threads = 4};
+  ArmstrongConfig config = {.limit = 0, .help = false, .threads = 4};
   double start_time, end_time;
 
-  parse_args(argc, argv, &arm);
+  parse_args(argc, argv, &config);
 
-  if (arm.help)
+  if (config.help)
   {
     print_help();
     return 0;
   }
 
-  handle_input(&arm);
+  handle_input(&config);
 
   start_time = omp_get_wtime();
 
-  if (arm.threads > 1)
+  if (config.threads > 1)
   {
-    find_armstrong_numbers(arm.limit, arm.threads);
+    find_armstrong_numbers(config.limit, config.threads);
   }
   else
   {
-    print_armstrong_numbers(arm.limit);
+    print_armstrong_numbers(config.limit);
   }
 
   end_time = omp_get_wtime();
@@ -80,7 +71,7 @@ int main(int argc, char *argv[])
 }
 
 /**
- * @brief Finds Armstrong numbers in parallel using OpenMP
+ * @brief Finds ArmstrongConfig numbers in parallel using OpenMP
  * @param limit Upper limit for the search
  * @param thread_count Number of threads to use
  *
@@ -90,7 +81,7 @@ int main(int argc, char *argv[])
 void find_armstrong_numbers(long long limit, int thread_count)
 {
   long long results[100] = {0}; // Fixed-size result buffer
-  int result_count = 0;         // Number of found Armstrong numbers
+  int result_count = 0;         // Number of found ArmstrongConfig numbers
 
 #pragma omp parallel num_threads(thread_count)
   {
@@ -140,9 +131,9 @@ void find_armstrong_numbers(long long limit, int thread_count)
 }
 
 /**
- * @brief Checks if a number is an Armstrong number
+ * @brief Checks if a number is an ArmstrongConfig number
  * @param num Number to check
- * @return true if Armstrong number, false otherwise
+ * @return true if ArmstrongConfig number, false otherwise
  *
  * Uses optimized algorithm with custom power function (ipow)
  */
@@ -206,14 +197,14 @@ int count_digits(long long num)
 
 /**
  * @brief Handles user input for the upper limit
- * @param arm Pointer to Armstrong configuration structure
+ * @param arm Pointer to ArmstrongConfig configuration structure
  *
  * Prompts user for input if limit wasn't provided via command line.
  * Validates input range and format.
  */
-void handle_input(Armstrong *arm)
+void handle_input(ArmstrongConfig *config)
 {
-  if (arm->limit == 0)
+  if (config->limit == 0)
   {
     char input[MAX_INPUT_LEN];
     printf("Enter upper limit (1-%lld): ", MAX_RANGE);
@@ -223,7 +214,7 @@ void handle_input(Armstrong *arm)
       print_error("Failed to read input");
       exit(EXIT_FAILURE);
     }
-    process_input(arm, input);
+    process_input(config, input);
   }
 }
 
@@ -232,11 +223,11 @@ void handle_input(Armstrong *arm)
  * @param arm Configuration structure
  * @param input User input string
  */
-void process_input(Armstrong *arm, const char *input)
+void process_input(ArmstrongConfig *config, const char *input)
 {
-  if (!parse_long_long(input, &arm->limit) ||
-      arm->limit < 1 ||
-      arm->limit > MAX_RANGE)
+  if (!parse_long_long(input, &config->limit) ||
+      config->limit < 1 ||
+      config->limit > MAX_RANGE)
   {
     print_error("Invalid input. Please enter a number between 1 and 1000000000000000000");
     exit(EXIT_FAILURE);
@@ -266,14 +257,14 @@ void print_error(const char *msg)
 }
 
 /**
- * @brief Single-threaded Armstrong number printer
+ * @brief Single-threaded ArmstrongConfig number printer
  * @param limit Upper search limit
  *
  * Used when thread_count = 1 for simpler execution
  */
 void print_armstrong_numbers(long long limit)
 {
-  printf("Armstrong numbers up to %lld:\n", limit);
+  printf("ArmstrongConfig numbers up to %lld:\n", limit);
   for (long long i = 1; i <= limit; i++)
   {
     if (is_armstrong_number(i))
@@ -290,25 +281,25 @@ void print_armstrong_numbers(long long limit)
  * @param argv Argument vector
  * @param arm Configuration structure to populate
  */
-void parse_args(int argc, char *argv[], Armstrong *arm)
+void parse_args(int argc, char *argv[], ArmstrongConfig *config)
 {
   for (int i = 1; i < argc; i++)
   {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
     {
-      arm->help = true;
+      config->help = true;
     }
     else if (strcmp(argv[i], "--num") == 0 || strcmp(argv[i], "-n") == 0)
     {
-      if (++i < argc && parse_long_long(argv[i], &arm->limit))
+      if (++i < argc && parse_long_long(argv[i], &config->limit))
         continue;
       print_error("Missing or invalid number after -n/--num");
       exit(EXIT_FAILURE);
     }
     else if (strcmp(argv[i], "--threads") == 0 || strcmp(argv[i], "-t") == 0)
     {
-      if (++i < argc && parse_long_long(argv[i], (long long *)&arm->threads) &&
-          arm->threads >= 1 && arm->threads <= MAX_THREADS)
+      if (++i < argc && parse_long_long(argv[i], (long long *)&config->threads) &&
+          config->threads >= 1 && config->threads <= MAX_THREADS)
         continue;
       print_error("Thread count must be between 1 and MAX_THREADS");
       exit(EXIT_FAILURE);
@@ -321,8 +312,8 @@ void parse_args(int argc, char *argv[], Armstrong *arm)
  */
 void print_help()
 {
-  printf("\nArmstrong Numbers Calculator\n\n");
-  printf("Usage: armstrong [options]\n\n");
+  printf("\nArmstrongConfig Numbers Calculator\n\n");
+  printf("Usage: ArmstrongConfig [options]\n\n");
   printf("Options:\n");
   printf("  -h, --help        Show this help message\n");
   printf("  -n, --num LIMIT   Set upper search limit (1-%lld)\n", MAX_RANGE);
